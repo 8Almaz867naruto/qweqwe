@@ -1,0 +1,40 @@
+{# checkins/checkin.html #}
+{% extends 'base.html' %}
+{% block title %}Заселение{% endblock %}
+{% block content %}
+<h4><i class="bi bi-box-arrow-in-right"></i> Оформление заселения</h4>
+<div class="card">
+<div class="card-body">
+  <dl class="row mb-3">
+    <dt class="col-3">Гость</dt><dd class="col-9">{{ b.guest_name }}</dd>
+    <dt class="col-3">Телефон</dt><dd class="col-9">{{ b.phone or '—' }}</dd>
+    <dt class="col-3">Паспорт</dt><dd class="col-9">{{ b.passport_number or '—' }}</dd>
+    <dt class="col-3">Категория</dt><dd class="col-9">{{ b.cat_name }}</dd>
+    <dt class="col-3">Период</dt><dd class="col-9">{{ b.check_in_date }} — {{ b.check_out_date }}</dd>
+  </dl>
+  <form method="post">
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Выбрать номер</label>
+      {% if free_rooms %}
+      <select name="room_id" class="form-select" required>
+        {% for r in free_rooms %}
+        <option value="{{ r.id }}" {% if r.id|string == request.args.get('room_id','') %}selected{% endif %}>
+          № {{ r.number }} (эт. {{ r.floor }})
+        </option>
+        {% endfor %}
+      </select>
+      {% else %}
+      <div class="alert alert-warning">Нет свободных номеров категории на эти даты.</div>
+      {% endif %}
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Паспортные данные (уточнить при заселении)</label>
+      <input name="passport" value="{{ b.passport_number or '' }}" class="form-control" placeholder="Серия и номер паспорта">
+    </div>
+    {% if free_rooms %}
+    <button class="btn btn-success btn-lg"><i class="bi bi-check-lg"></i> Заселить</button>
+    {% endif %}
+    <a href="{{ url_for('bookings.detail', bid=b.id) }}" class="btn btn-link">Отмена</a>
+  </form>
+</div></div>
+{% endblock %}

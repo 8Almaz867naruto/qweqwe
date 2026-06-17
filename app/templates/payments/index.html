@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Платежи{% endblock %}
+{% block content %}
+<h4><i class="bi bi-cash-coin"></i> Реестр платежей</h4>
+<form class="row g-2 mb-3" method="get">
+  <div class="col-auto"><input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm" placeholder="От"></div>
+  <div class="col-auto"><input type="date" name="date_to" value="{{ date_to }}" class="form-control form-control-sm" placeholder="До"></div>
+  <div class="col-auto"><button class="btn btn-sm btn-secondary">Фильтр</button>
+  <a href="{{ url_for('payments.index') }}" class="btn btn-sm btn-link">Сбросить</a></div>
+</form>
+<div class="alert alert-info py-2">Итого за период: <strong>{{ '%.2f'|format(total) }} ₽</strong></div>
+<div class="table-responsive">
+<table class="table table-sm table-hover">
+  <thead class="table-dark">
+    <tr><th>Дата</th><th>Гость</th><th>Бронь</th><th>Сумма</th><th>Способ</th><th>Сотрудник</th></tr>
+  </thead>
+  <tbody>
+  {% for p in payments %}
+  <tr>
+    <td class="small">{{ p.paid_at }}</td>
+    <td>{{ p.guest_name or '—' }}</td>
+    <td>{% if p.booking_code %}<a href="{{ url_for('bookings.index') }}?q={{ p.booking_code }}"><code>{{ p.booking_code }}</code></a>{% else %}—{% endif %}</td>
+    <td class="text-success fw-semibold">{{ '%.2f'|format(p.amount) }} ₽</td>
+    <td>{{ method_labels.get(p.method, p.method) }}</td>
+    <td class="small text-muted">{{ p.staff_name }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6" class="text-muted text-center">Платежей нет</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

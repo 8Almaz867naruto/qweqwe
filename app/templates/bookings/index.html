@@ -1,0 +1,58 @@
+{# bookings/index.html #}
+{% extends 'base.html' %}
+{% block title %}Бронирования{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2 flex-wrap">
+  <h4 class="mb-0"><i class="bi bi-calendar3"></i> Бронирования</h4>
+  {% if current_user.role in ('admin','receptionist') %}
+  <a href="{{ url_for('bookings.new') }}" class="btn btn-success btn-sm ms-auto">
+    <i class="bi bi-plus-lg"></i> Новое бронирование
+  </a>
+  {% endif %}
+</div>
+<form class="row g-2 mb-3" method="get">
+  <div class="col-auto">
+    <input name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="ФИО или код брони">
+  </div>
+  <div class="col-auto">
+    <select name="status" class="form-select form-select-sm">
+      <option value="">Все статусы</option>
+      {% for k,(lbl,cls) in status_labels.items() %}
+      <option value="{{ k }}" {% if k==status_filter %}selected{% endif %}>{{ lbl }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-sm btn-secondary">Найти</button>
+    <a href="{{ url_for('bookings.index') }}" class="btn btn-sm btn-link">Сбросить</a>
+  </div>
+</form>
+<div class="table-responsive">
+<table class="table table-hover table-sm">
+  <thead class="table-dark">
+    <tr><th>Код</th><th>Гость</th><th>Категория</th><th>Номер</th>
+        <th>Заезд</th><th>Выезд</th><th>Сумма</th><th>Статус</th><th></th></tr>
+  </thead>
+  <tbody>
+  {% for b in bookings %}
+  <tr>
+    <td><code>{{ b.booking_code }}</code></td>
+    <td>{{ b.guest_name }}</td>
+    <td>{{ b.cat_name }}</td>
+    <td>{% if b.room_number %}№ {{ b.room_number }}{% else %}—{% endif %}</td>
+    <td>{{ b.check_in_date }}</td>
+    <td>{{ b.check_out_date }}</td>
+    <td>{{ '%.2f'|format(b.total_amount) }} ₽</td>
+    <td>
+      {% set lbl,cls = status_labels[b.status] %}
+      <span class="badge bg-{{ cls }}">{{ lbl }}</span>
+    </td>
+    <td><a href="{{ url_for('bookings.detail', bid=b.id) }}" class="btn btn-outline-secondary btn-sm">Открыть</a></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="9" class="text-center text-muted">Бронирований не найдено</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

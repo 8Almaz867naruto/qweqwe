@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Журнал аудита{% endblock %}
+{% block content %}
+<h4><i class="bi bi-journal-text"></i> Журнал действий (последние 200)</h4>
+<a href="{{ url_for('admin.index') }}" class="btn btn-link mb-3">← Настройки</a>
+<div class="table-responsive">
+<table class="table table-sm table-hover">
+  <thead class="table-dark">
+    <tr><th>Время</th><th>Пользователь</th><th>Действие</th><th>Объект</th><th>Детали</th></tr>
+  </thead>
+  <tbody>
+  {% for r in rows %}
+  <tr>
+    <td class="small text-muted">{{ r.created_at }}</td>
+    <td>{{ r.username or '—' }}</td>
+    <td><code>{{ r.action }}</code></td>
+    <td class="small">{{ r.entity or '' }} {% if r.entity_id %}#{{ r.entity_id }}{% endif %}</td>
+    <td class="small text-muted">{{ r.details or '' }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5" class="text-muted text-center">Журнал пуст</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

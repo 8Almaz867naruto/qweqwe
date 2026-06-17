@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Шахматка{% endblock %}
+{% block content %}
+<div class="page-title">
+  <h4><i class="bi bi-grid-3x3-gap"></i> Шахматка номерного фонда</h4>
+  {% if current_user.role in ('admin','receptionist') %}
+  <a href="{{ url_for('bookings.new') }}" class="btn btn-success btn-sm ms-auto"><i class="bi bi-plus-lg"></i> Новое бронирование</a>
+  {% endif %}
+</div>
+
+<div class="row g-3 mb-3">
+  {% set stats = [('Свободны', status_map.get('free',0), 'bi-check-circle'), ('Заняты', active_count, 'bi-person-check'), ('Заезды сегодня', today_arrivals, 'bi-box-arrow-in-right'), ('Выезды сегодня', today_departures, 'bi-box-arrow-right')] %}
+  {% for title, val, icon in stats %}
+  <div class="col-sm-6 col-xl-3"><div class="card stat-card"><div class="card-body d-flex align-items-center gap-3"><div class="stat-icon"><i class="bi {{ icon }}"></i></div><div><div class="stat-label">{{ title }}</div><div class="stat-value">{{ val }}</div></div></div></div></div>
+  {% endfor %}
+</div>
+
+<div class="toolbar">
+  <form class="row g-2 align-items-center" method="get">
+    <div class="col-auto"><a href="{{ url_for('rooms.chart', start=prev_start, days=days, category_id=category_filter) }}" class="btn btn-outline-secondary"><i class="bi bi-chevron-left"></i></a></div>
+    <div class="col-auto"><input type="date" name="start" value="{{ start.isoformat() }}" class="form-control"></div>
+    <div class="col-auto"><select name="days" class="form-select">{% for d in [7,14,21,30] %}<option value="{{ d }}" {% if d==days %}selected{% endif %}>{{ d }} дней</option>{% endfor %}</select></div>
+    <div class="col-auto"><select name="category_id" class="form-select"><option value="">Все категории</option>{% for c in categories %}<option value="{{ c.id }}" {% if category_filter == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></div>
+    <div class="col-auto"><button class="btn btn-primary">Показать</button></div>
+    <div class="col-auto"><a href="{{ url_for('rooms.chart', start=next_start, days=days, category_id=category_filter) }}" class="btn btn-outline-secondary"><i class="bi bi-chevron-right"></i></a></div>
+  </form>
+</div>
+
+<div class="d-flex gap-2 mb-3 flex-wrap small">
+  <span class="chart-free px-3 py-2 rounded-pill">Свободен</span><span class="chart-booked px-3 py-2 rounded-pill">Забронирован</span><span class="chart-occupied px-3 py-2 rounded-pill">Занят</span><span class="chart-cleaning px-3 py-2 rounded-pill">Уборка</span><span class="chart-maintenance px-3 py-2 rounded-pill">Ремонт</span>
+</div>
+
+<div class="card"><div class="card-body p-0"><div class="table-responsive">
+<table class="table table-bordered table-sm mb-0" style="font-size:.78rem">
+  <thead><tr><th style="min-width:120px">Номер / категория</th>{% for d in dates %}<th class="chart-header {% if d.weekday()>=5 %}table-warning{% endif %}">{{ d.strftime('%d.%m') }}<br><span class="text-muted" style="font-size:.65rem">{{ ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'][d.weekday()] }}</span></th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for r in rooms %}
+    {% set rm = matrix[r.id] %}
+    <tr>
+      <td class="chart-room fw-semibold">№ {{ r.number }}<span class="text-muted d-block" style="font-size:.68rem">{{ r.cat_name }}, эт.{{ r.floor }}</span>{% if r.status in ('cleaning','maintenance') %}<form method="post" action="{{ url_for('rooms.set_status', room_id=r.id) }}" class="d-inline"><button name="status" value="free" class="btn btn-outline-success btn-sm py-0 px-1 mt-1" style="font-size:.65rem">{{ '✔ Убрано' if r.status == 'cleaning' else 'Ввести' }}</button></form>{% endif %}</td>
+      {% for d in dates %}{% set ds = d.isoformat() %}{% if ds in rm %}{% set b = rm[ds] %}{% if b.check_in_date == ds %}<td class="chart-cell chart-{{ b.status }}" title="{{ b.guest_name }} ({{ b.booking_code }})"><a href="{{ url_for('bookings.detail', bid=b.id) }}" class="text-decoration-none text-dark d-block"><span class="fw-semibold">{{ b.guest_name|truncate(12,true,'…') }}</span><span class="text-muted d-block">#{{ b.booking_code }}</span></a></td>{% else %}<td class="chart-cell chart-{{ b.status }}" title="{{ b.guest_name }}"><a href="{{ url_for('bookings.detail', bid=b.id) }}" class="text-decoration-none text-muted d-block text-center">···</a></td>{% endif %}{% else %}<td class="chart-cell chart-free" title="Свободен">{% if current_user.role in ('admin','receptionist') %}<a href="{{ url_for('bookings.new') }}?check_in={{ ds }}&room_id={{ r.id }}" class="text-decoration-none text-success d-block text-center fw-bold">+</a>{% endif %}</td>{% endif %}{% endfor %}
+    </tr>
+  {% else %}<tr><td colspan="{{ dates|length + 1 }}" class="text-center text-muted py-4">Номера не найдены</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div></div>
+{% endblock %}

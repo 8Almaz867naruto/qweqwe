@@ -1,0 +1,35 @@
+{# guests/index.html #}
+{% extends 'base.html' %}
+{% block title %}Гости{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+  <h4 class="mb-0"><i class="bi bi-people"></i> База гостей</h4>
+  {% if current_user.role in ('admin','receptionist') %}
+  <a href="{{ url_for('guests.new') }}" class="btn btn-success btn-sm ms-auto"><i class="bi bi-plus-lg"></i> Новый гость</a>
+  {% endif %}
+</div>
+<form class="row g-2 mb-3" method="get">
+  <div class="col-auto">
+    <input name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="ФИО, телефон, паспорт">
+  </div>
+  <div class="col-auto"><button class="btn btn-sm btn-secondary">Найти</button></div>
+</form>
+<div class="table-responsive">
+<table class="table table-hover table-sm">
+  <thead class="table-dark"><tr><th>ФИО</th><th>Телефон</th><th>E-mail</th><th>VIP</th><th></th></tr></thead>
+  <tbody>
+  {% for g in guests %}
+  <tr>
+    <td><a href="{{ url_for('guests.detail', gid=g.id) }}">{{ g.full_name }}</a></td>
+    <td>{{ g.phone or '—' }}</td>
+    <td>{{ g.email or '—' }}</td>
+    <td>{% if g.vip_flag %}<span class="badge badge-vip text-white">VIP</span>{% endif %}</td>
+    <td><a href="{{ url_for('guests.detail', gid=g.id) }}" class="btn btn-outline-secondary btn-sm">Открыть</a></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5" class="text-muted text-center">Гостей не найдено</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

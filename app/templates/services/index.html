@@ -1,0 +1,19 @@
+{# services/index.html #}
+{% extends 'base.html' %}
+{% block title %}Услуги{% endblock %}
+{% block content %}
+<h4><i class="bi bi-bag-check"></i> Дополнительные услуги</h4>
+<table class="table table-sm">
+  <thead class="table-dark"><tr><th>Название</th><th>Ед.</th><th>Цена</th><th>Статус</th></tr></thead>
+  <tbody>
+  {% for s in services %}
+  <tr class="{{ '' if s.is_active else 'text-muted' }}">
+    <td>{{ s.name }}</td>
+    <td>{{ s.unit }}</td>
+    <td>{{ s.price|int }} ₽</td>
+    <td>{% if s.is_active %}<span class="badge bg-success">Активна</span>{% else %}<span class="badge bg-secondary">Отключена</span>{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Бронирование {{ b.booking_code }}{% endblock %}
+{% block content %}
+{% set lbl,cls = status_labels[b.status] %}
+<div class="d-flex align-items-center mb-3 gap-2">
+  <h4 class="mb-0">Бронирование <code>{{ b.booking_code }}</code></h4>
+  <span class="badge bg-{{ cls }} fs-6">{{ lbl }}</span>
+  <div class="ms-auto d-flex gap-2">
+    {% if b.status == 'confirmed' and current_user.role in ('admin','receptionist') %}
+    <a href="{{ url_for('bookings.edit', bid=b.id) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil-square"></i> Изменить</a>
+    {% endif %}
+    <a href="{{ url_for('bookings.index') }}" class="btn btn-link btn-sm">← Все брони</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">Информация</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-5">Гость</dt>
+          <dd class="col-7">
+            <a href="{{ url_for('guests.detail', gid=b.guest_id) }}">{{ b.guest_name }}</a>
+            {% if b.vip_flag %}<span class="badge badge-vip text-white ms-1">VIP</span>{% endif %}
+            {% if b.guest_phone %}<br><small class="text-muted">{{ b.guest_phone }}</small>{% endif %}
+          </dd>
+          <dt class="col-5">Категория</dt><dd class="col-7">{{ b.cat_name }}</dd>
+          <dt class="col-5">Номер</dt>
+          <dd class="col-7">{% if b.room_number %}№ {{ b.room_number }}{% else %}<span class="text-muted">не назначен</span>{% endif %}</dd>
+          <dt class="col-5">Заезд</dt><dd class="col-7">{{ b.check_in_date }}</dd>
+          <dt class="col-5">Выезд</dt><dd class="col-7">{{ b.check_out_date }}</dd>
+          <dt class="col-5">Ночей</dt><dd class="col-7">{{ nights }}</dd>
+          <dt class="col-5">Гостей</dt><dd class="col-7">{{ b.guests_count }}</dd>
+          {% if b.notes %}
+          <dt class="col-5">Примечания</dt><dd class="col-7 text-muted">{{ b.notes }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Расчёт</div>
+      <div class="card-body">
+        <table class="table table-sm mb-2">
+          <tr><td>Стоимость проживания</td><td class="text-end">{{ '%.2f'|format(b.total_amount) }} ₽</td></tr>
+          <tr><td>Дополнительные услуги</td><td class="text-end">{{ '%.2f'|format(svc_total) }} ₽</td></tr>
+          <tr><td>Оплачено</td><td class="text-end text-success">{{ '%.2f'|format(paid_total) }} ₽</td></tr>
+          <tr class="fw-bold {{ 'table-danger' if due > 0 else 'table-success' }}">
+            <td>К доплате</td><td class="text-end">{{ '%.2f'|format(due) }} ₽</td>
+          </tr>
+        </table>
+        {% if current_user.role in ('admin','receptionist') and b.status in ('confirmed','checked_in') %}
+        <form method="post" action="{{ url_for('payments.add', bid=b.id) }}" class="d-flex gap-2">
+          <input name="amount" type="number" step="0.01" min="0.01" class="form-control form-control-sm" placeholder="Сумма" required>
+          <select name="method" class="form-select form-select-sm" style="width:140px">
+            <option value="cash">Наличными</option>
+            <option value="card">Карта</option>
+            <option value="transfer">Перевод</option>
+          </select>
+          <button class="btn btn-success btn-sm">Принять оплату</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if b.status == 'confirmed' and current_user.role in ('admin','receptionist') %}
+    <div class="d-flex gap-2 mb-3">
+      <a href="{{ url_for('checkins.do_checkin', bid=b.id) }}" class="btn btn-success">
+        <i class="bi bi-door-open"></i> Заселить
+      </a>
+      <form method="post" action="{{ url_for('bookings.cancel', bid=b.id) }}"
+            onsubmit="return confirm('Отменить бронирование?')">
+        <button class="btn btn-outline-danger"><i class="bi bi-x-circle"></i> Отменить</button>
+      </form>
+    </div>
+    {% endif %}
+    {% if b.status == 'checked_in' and current_user.role in ('admin','receptionist') %}
+    <a href="{{ url_for('checkins.do_checkout', bid=b.id) }}" class="btn btn-warning mb-3">
+      <i class="bi bi-door-closed"></i> Оформить выселение
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+{% if b.status in ('confirmed','checked_in','completed') %}
+<div class="card mt-3">
+  <div class="card-header fw-semibold">Дополнительные услуги</div>
+  <div class="card-body">
+    {% if orders %}
+    <table class="table table-sm mb-2">
+      <thead><tr><th>Услуга</th><th>Кол-во</th><th>Сумма</th><th>Время</th></tr></thead>
+      <tbody>
+      {% for o in orders %}
+      <tr><td>{{ o.svc_name }}</td><td>{{ o.quantity }} {{ o.unit }}</td>
+          <td>{{ '%.2f'|format(o.amount) }} ₽</td>
+          <td class="text-muted small">{{ o.ordered_at }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    {% if b.status == 'checked_in' and current_user.role in ('admin','receptionist') %}
+    <form method="post" action="{{ url_for('services.order', bid=b.id) }}" class="d-flex gap-2 align-items-end">
+      <div>
+        <label class="form-label small">Услуга</label>
+        <select name="service_id" class="form-select form-select-sm" required>
+          {% for s in services %}<option value="{{ s.id }}">{{ s.name }} ({{ s.price|int }} ₽/{{ s.unit }})</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label small">Кол-во</label>
+        <input name="quantity" type="number" value="1" min="1" class="form-control form-control-sm" style="width:70px">
+      </div>
+      <button class="btn btn-outline-primary btn-sm">Добавить</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% if payments %}
+<div class="card mt-3">
+  <div class="card-header fw-semibold">История платежей</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Дата</th><th>Сумма</th><th>Способ</th><th>Примечание</th></tr></thead>
+      <tbody>
+      {% for p in payments %}
+      <tr>
+        <td class="small">{{ p.paid_at }}</td>
+        <td class="text-success fw-semibold">{{ '%.2f'|format(p.amount) }} ₽</td>
+        <td>{% if p.method=='cash' %}Наличными{% elif p.method=='card' %}Карта{% else %}Перевод{% endif %}</td>
+        <td class="text-muted small">{{ p.notes or '' }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

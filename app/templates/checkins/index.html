@@ -1,0 +1,88 @@
+{# checkins/index.html #}
+{% extends 'base.html' %}
+{% block title %}Заезд / Выезд{% endblock %}
+{% block content %}
+<h4 class="mb-3"><i class="bi bi-door-open"></i> Заезд и Выезд — сегодня {{ today }}</h4>
+
+{% if overdue %}
+<div class="alert alert-danger">
+  <strong><i class="bi bi-exclamation-triangle"></i> Просроченные выезды ({{ overdue|length }}):</strong>
+  {% for b in overdue %}<a href="{{ url_for('bookings.detail', bid=b.id) }}" class="btn btn-danger btn-sm ms-1">№{{ b.room_number }} – {{ b.guest_name }}</a>{% endfor %}
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card border-success">
+      <div class="card-header bg-success text-white fw-semibold">
+        <i class="bi bi-box-arrow-in-right"></i> Ожидается заезд сегодня ({{ arriving|length }})
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Гость</th><th>Категория</th><th>Номер</th><th></th></tr></thead>
+          <tbody>
+          {% for b in arriving %}
+          <tr>
+            <td>{{ b.guest_name }}</td>
+            <td>{{ b.cat_name }}</td>
+            <td>{% if b.room_number %}{{ b.room_number }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td>
+              <a href="{{ url_for('checkins.do_checkin', bid=b.id) }}" class="btn btn-success btn-sm">Заселить</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-muted text-center">Заездов нет</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-warning">
+      <div class="card-header bg-warning fw-semibold">
+        <i class="bi bi-box-arrow-right"></i> Ожидается выезд сегодня ({{ departing|length }})
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Гость</th><th>Номер</th><th></th></tr></thead>
+          <tbody>
+          {% for b in departing %}
+          <tr>
+            <td>{{ b.guest_name }}</td>
+            <td>{{ b.room_number }}</td>
+            <td><a href="{{ url_for('checkins.do_checkout', bid=b.id) }}" class="btn btn-warning btn-sm">Выселить</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" class="text-muted text-center">Выездов нет</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3">
+  <div class="card-header fw-semibold">Все активные заселения ({{ active|length }})</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0 table-hover">
+      <thead><tr><th>Гость</th><th>Номер</th><th>Категория</th><th>Заезд</th><th>Выезд</th><th></th></tr></thead>
+      <tbody>
+      {% for b in active %}
+      <tr class="{{ 'table-danger' if b.check_out_date < today }}">
+        <td><a href="{{ url_for('bookings.detail', bid=b.id) }}">{{ b.guest_name }}</a></td>
+        <td>{{ b.room_number }}</td>
+        <td>{{ b.cat_name }}</td>
+        <td>{{ b.check_in_date }}</td>
+        <td>{{ b.check_out_date }}{% if b.check_out_date < today %} <span class="badge bg-danger">просрочен</span>{% endif %}</td>
+        <td><a href="{{ url_for('checkins.do_checkout', bid=b.id) }}" class="btn btn-warning btn-sm">Выселить</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-muted text-center">Нет активных заселений</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

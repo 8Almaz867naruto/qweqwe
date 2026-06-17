@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Выселение{% endblock %}
+{% block content %}
+<h4><i class="bi bi-box-arrow-right"></i> Оформление выселения</h4>
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header fw-semibold">Бронирование {{ b.booking_code }}</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-5">Гость</dt><dd class="col-7">{{ b.guest_name }}</dd>
+          <dt class="col-5">Номер</dt><dd class="col-7">{{ b.room_number }}</dd>
+          <dt class="col-5">Категория</dt><dd class="col-7">{{ b.cat_name }}</dd>
+          <dt class="col-5">Заезд</dt><dd class="col-7">{{ b.check_in_date }}</dd>
+          <dt class="col-5">Выезд</dt><dd class="col-7">{{ b.check_out_date }}</dd>
+          <dt class="col-5">Ночей</dt><dd class="col-7">{{ nights }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-warning">
+      <div class="card-header fw-semibold bg-warning">Итоговый расчёт</div>
+      <div class="card-body">
+        <table class="table table-sm">
+          <tr><td>Проживание</td><td class="text-end fw-semibold">{{ '%.2f'|format(b.total_amount) }} ₽</td></tr>
+          {% for o in orders %}
+          <tr class="text-muted small">
+            <td>{{ o.svc_name }} × {{ o.quantity }}</td>
+            <td class="text-end">{{ '%.2f'|format(o.amount) }} ₽</td>
+          </tr>
+          {% endfor %}
+          {% if orders %}
+          <tr><td>Итого услуги</td><td class="text-end">{{ '%.2f'|format(svc_total) }} ₽</td></tr>
+          {% endif %}
+          <tr class="text-success"><td>Оплачено</td><td class="text-end">{{ '%.2f'|format(paid_total) }} ₽</td></tr>
+          <tr class="fw-bold fs-5 {{ 'table-danger' if due > 0 else 'table-success' }}">
+            <td>К доплате</td>
+            <td class="text-end">{{ '%.2f'|format(due) }} ₽</td>
+          </tr>
+        </table>
+        {% if due > 0 %}
+        <div class="alert alert-warning py-2 small">
+          <strong>Необходимо принять доплату {{ '%.2f'|format(due) }} ₽ перед выселением.</strong>
+        </div>
+        {% endif %}
+        <form method="post" onsubmit="return confirm('Подтвердить выселение гостя?')">
+          <button class="btn btn-warning btn-lg w-100">
+            <i class="bi bi-door-closed"></i> Завершить выселение
+          </button>
+        </form>
+        <a href="{{ url_for('bookings.detail', bid=b.id) }}" class="btn btn-link w-100 mt-1">Отмена</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Новое бронирование{% endblock %}
+{% block content %}
+<div class="page-title">
+  <h4><i class="bi bi-plus-circle"></i> Новое бронирование</h4>
+</div>
+<div class="row g-3">
+<div class="col-lg-8">
+<div class="card">
+<div class="card-header">Данные бронирования</div>
+<div class="card-body">
+<form method="post" id="bookForm">
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Гость</label>
+    <div class="d-flex gap-2">
+      <select name="guest_id" id="guest_id" class="form-select" required>
+        <option value="">— выберите гостя —</option>
+        {% for g in guests %}
+        <option value="{{ g.id }}" {% if request.args.get('guest_id')|int == g.id %}selected{% endif %}>{{ g.full_name }} {{ g.phone or '' }}</option>
+        {% endfor %}
+      </select>
+      <a href="{{ url_for('guests.new') }}" class="btn btn-outline-secondary" title="Новый гость"><i class="bi bi-person-plus"></i></a>
+    </div>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Категория номера</label>
+      <select name="category_id" id="cat_id" class="form-select" required>
+        <option value="">— выберите —</option>
+        {% for c in categories %}
+        <option value="{{ c.id }}" data-rate="{{ c.base_rate }}" {% if selected_category_id == c.id %}selected{% endif %}>{{ c.name }} ({{ c.base_rate|int }} ₽/ночь)</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Конкретный номер <small class="text-muted">(не обязательно)</small></label>
+      <select name="room_id" id="room_id" class="form-select" data-selected="{{ selected_room_id or '' }}"><option value="">Любой свободный</option></select>
+    </div>
+  </div>
+  <div class="row g-3 mt-1">
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Дата заезда</label>
+      <input type="date" name="check_in_date" id="check_in" value="{{ request.args.get('check_in', '') }}" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Дата выезда</label>
+      <input type="date" name="check_out_date" id="check_out" class="form-control" required>
+    </div>
+  </div>
+  <div class="row g-3 mt-1">
+    <div class="col-md-4">
+      <label class="form-label fw-semibold">Гостей</label>
+      <input type="number" name="guests_count" value="1" min="1" max="10" class="form-control">
+    </div>
+    <div class="col-md-8">
+      <label class="form-label fw-semibold">Примечания</label>
+      <input name="notes" class="form-control" placeholder="Доп. пожелания, ранний заезд, комментарий администратора">
+    </div>
+  </div>
+  <hr>
+  <div id="cost_block" class="alert alert-primary d-none"><span id="cost_text"></span></div>
+  <button class="btn btn-success btn-lg" id="submitBtn" disabled><i class="bi bi-check-lg"></i> Подтвердить бронирование</button>
+  <a href="{{ url_for('bookings.index') }}" class="btn btn-link">Отмена</a>
+</form>
+</div></div>
+</div>
+<div class="col-lg-4">
+  <div class="card stat-card h-100">
+    <div class="card-body">
+      <div class="stat-icon mb-3"><i class="bi bi-lightning-charge"></i></div>
+      <h5 class="fw-bold">Быстрое оформление</h5>
+      <p class="text-muted mb-0">После выбора дат система автоматически покажет свободные номера и рассчитает стоимость с учётом VIP-скидки гостя.</p>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const catEl=document.getElementById('cat_id'), roomEl=document.getElementById('room_id'), inEl=document.getElementById('check_in'), outEl=document.getElementById('check_out'), gEl=document.getElementById('guest_id'), costB=document.getElementById('cost_block'), costT=document.getElementById('cost_text'), subBtn=document.getElementById('submitBtn');
+function updateRooms(){const cat=catEl.value,ci=inEl.value,co=outEl.value,sel=roomEl.dataset.selected;if(!cat||!ci||!co)return;fetch(`/rooms/api/free?category_id=${cat}&check_in=${ci}&check_out=${co}`).then(r=>r.json()).then(data=>{roomEl.innerHTML='<option value="">Любой свободный</option>';data.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=`№ ${r.number} (эт.${r.floor})`;if(String(r.id)===String(sel))o.selected=true;roomEl.appendChild(o);});});}
+function updateCost(){const cat=catEl.value,ci=inEl.value,co=outEl.value,g=gEl.value;if(!cat||!ci||!co||ci>=co){subBtn.disabled=true;costB.classList.add('d-none');return;}fetch(`/bookings/api/cost?category_id=${cat}&check_in=${ci}&check_out=${co}&guest_id=${g}`).then(r=>r.json()).then(d=>{costT.innerHTML=`<b>${d.nights} ночей</b> = <b>${d.cost.toLocaleString('ru')} ₽</b>`+(d.vip?' <span class="badge badge-vip ms-1">VIP −10%</span>':'');costB.classList.remove('d-none');subBtn.disabled=!gEl.value;});updateRooms();}
+[catEl,inEl,outEl,gEl].forEach(el=>el.addEventListener('change',updateCost));
+if(catEl.value&&inEl.value&&outEl.value){updateCost();}
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Редактировать гостя{% endblock %}
+{% block content %}
+<h4>Редактировать: {{ g.full_name }}</h4>
+<div class="card" style="max-width:560px">
+<div class="card-body">
+<form method="post">
+  {% for label, name, val in [
+      ('ФИО *', 'full_name', g.full_name),
+      ('Серия и № паспорта', 'passport_number', g.passport_number or ''),
+      ('Телефон', 'phone', g.phone or ''),
+      ('E-mail', 'email', g.email or ''),
+      ('Адрес регистрации', 'address', g.address or ''),
+  ] %}
+  <div class="mb-3">
+    <label class="form-label fw-semibold">{{ label }}</label>
+    <input name="{{ name }}" value="{{ val }}" class="form-control" {% if label.endswith('*') %}required{% endif %}>
+  </div>
+  {% endfor %}
+  <div class="mb-3">
+    <label class="form-label">Примечания</label>
+    <textarea name="notes" class="form-control" rows="2">{{ g.notes or '' }}</textarea>
+  </div>
+  <div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" name="vip_flag" id="vip" {% if g.vip_flag %}checked{% endif %}>
+    <label class="form-check-label" for="vip">VIP-гость (скидка 10%)</label>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="{{ url_for('guests.detail', gid=g.id) }}" class="btn btn-link">Отмена</a>
+</form>
+</div></div>
+{% endblock %}

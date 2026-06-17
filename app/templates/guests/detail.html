@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}{{ g.full_name }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+  <h4 class="mb-0"><i class="bi bi-person"></i> {{ g.full_name }}
+    {% if g.vip_flag %}<span class="badge badge-vip text-white ms-1">VIP</span>{% endif %}
+  </h4>
+  <a href="{{ url_for('guests.edit', gid=g.id) }}" class="btn btn-outline-secondary btn-sm ms-auto">Редактировать</a>
+  <a href="{{ url_for('bookings.new') }}?guest_id={{ g.id }}" class="btn btn-success btn-sm">+ Бронирование</a>
+</div>
+<div class="card mb-3" style="max-width:500px">
+  <div class="card-body">
+    <dl class="row mb-0">
+      <dt class="col-4">Паспорт</dt><dd class="col-8">{{ g.passport_number or '—' }}</dd>
+      <dt class="col-4">Телефон</dt><dd class="col-8">{{ g.phone or '—' }}</dd>
+      <dt class="col-4">E-mail</dt><dd class="col-8">{{ g.email or '—' }}</dd>
+      <dt class="col-4">Адрес</dt><dd class="col-8">{{ g.address or '—' }}</dd>
+      <dt class="col-4">Примечания</dt><dd class="col-8">{{ g.notes or '—' }}</dd>
+      <dt class="col-4">В базе с</dt><dd class="col-8 text-muted">{{ g.created_at }}</dd>
+    </dl>
+  </div>
+</div>
+
+<h5>История посещений</h5>
+<div class="table-responsive">
+<table class="table table-sm table-hover">
+  <thead class="table-dark"><tr><th>Код</th><th>Категория</th><th>Номер</th><th>Заезд</th><th>Выезд</th><th>Сумма</th><th>Статус</th></tr></thead>
+  <tbody>
+  {% for b in history %}
+  <tr>
+    <td><a href="{{ url_for('bookings.detail', bid=b.id) }}"><code>{{ b.booking_code }}</code></a></td>
+    <td>{{ b.cat_name }}</td>
+    <td>{{ b.room_number or '—' }}</td>
+    <td>{{ b.check_in_date }}</td>
+    <td>{{ b.check_out_date }}</td>
+    <td>{{ '%.2f'|format(b.total_amount) }} ₽</td>
+    <td><span class="badge bg-secondary">{{ b.status }}</span></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7" class="text-muted text-center">Нет истории</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

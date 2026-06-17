@@ -1,0 +1,36 @@
+{# guests/new.html #}
+{% extends 'base.html' %}
+{% block title %}Новый гость{% endblock %}
+{% block content %}
+<h4>Новый гость</h4>
+<div class="card" style="max-width:560px">
+<div class="card-body">
+<form method="post">
+  {% for label, name, required in [
+      ('ФИО *', 'full_name', True),
+      ('Серия и № паспорта', 'passport_number', False),
+      ('Телефон', 'phone', False),
+      ('E-mail', 'email', False),
+      ('Адрес регистрации', 'address', False),
+  ] %}
+  <div class="mb-3">
+    <label class="form-label fw-semibold">{{ label }}</label>
+    <input name="{{ name }}" class="form-control" {% if required %}required{% endif %}>
+  </div>
+  {% endfor %}
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Примечания</label>
+    <textarea name="notes" class="form-control" rows="2"></textarea>
+  </div>
+  <div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" name="vip_flag" id="vip">
+    <label class="form-check-label" for="vip">VIP-гость (скидка 10%)</label>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="{{ url_for('guests.index') }}" class="btn btn-link">Отмена</a>
+</form>
+</div></div>
+{% endblock %}
+
+
+{# guests/detail.html — второй шаблон в этом же файле передаётся через отдельный render #}

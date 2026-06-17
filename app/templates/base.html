@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}АИС Гостиница{% endblock %}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+  :root{
+    --app-bg:#f3f6fb; --app-card:#ffffff; --app-ink:#182033; --app-muted:#6b7280;
+    --app-primary:#3157d5; --app-primary-2:#6b8cff; --app-border:#e5e9f2;
+    --app-shadow:0 14px 35px rgba(24,32,51,.08); --app-radius:18px;
+  }
+  body{background:linear-gradient(180deg,#eef3ff 0,#f7f8fb 320px,#f3f6fb 100%);color:var(--app-ink);font-size:.95rem;}
+  a{color:var(--app-primary)}
+  .app-shell{min-height:100vh;}
+  .navbar{background:rgba(16,24,40,.94)!important;backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(15,23,42,.16);}
+  .navbar-brand{font-weight:800;letter-spacing:.02em}.navbar .nav-link{border-radius:999px;padding:.55rem .78rem!important;margin:.08rem;color:rgba(255,255,255,.78)!important}.navbar .nav-link:hover,.navbar .nav-link.active{background:rgba(255,255,255,.12);color:#fff!important}.navbar .badge{font-weight:600;}
+  .container-fluid.app-content{padding:1.25rem 1.5rem 2rem;}
+  .page-title{display:flex;align-items:center;gap:.65rem;margin-bottom:1rem}.page-title h4{margin:0;font-weight:800;letter-spacing:-.02em}.page-title .bi{color:var(--app-primary)}
+  .card{border:1px solid var(--app-border);border-radius:var(--app-radius);box-shadow:var(--app-shadow);overflow:hidden;background:var(--app-card)}
+  .card-header{background:linear-gradient(180deg,#fff,#f8faff);border-bottom:1px solid var(--app-border);font-weight:700;color:#25304a}.card-body{padding:1.05rem}.card-footer{background:#fbfcff;border-top:1px solid var(--app-border)}
+  .btn{border-radius:12px;font-weight:600}.btn-sm{border-radius:10px}.btn-success{background:#14926f;border-color:#14926f}.btn-dark{background:#101828;border-color:#101828}.btn-primary{background:var(--app-primary);border-color:var(--app-primary)}.btn-outline-secondary{border-color:#cbd3df;color:#344054}.btn-outline-secondary:hover{background:#eef2f7;color:#101828;border-color:#b8c1ce}
+  .form-control,.form-select{border-radius:12px;border-color:#d8deea}.form-control:focus,.form-select:focus{border-color:var(--app-primary-2);box-shadow:0 0 0 .2rem rgba(49,87,213,.12)}
+  .table{--bs-table-bg:transparent}.table thead th{font-size:.78rem;text-transform:uppercase;letter-spacing:.045em;color:#667085;background:#f8faff!important;border-bottom:1px solid var(--app-border)!important}.table td,.table th{vertical-align:middle}.table-hover tbody tr:hover{background:#f7f9ff}.table-responsive{border-radius:16px}
+  .badge{border-radius:999px;padding:.45em .65em}.badge-vip{background:#7c3aed!important;color:#fff!important}.text-muted{color:var(--app-muted)!important}
+  .stat-card{position:relative;overflow:hidden}.stat-card:after{content:"";position:absolute;right:-34px;top:-34px;width:110px;height:110px;border-radius:50%;background:rgba(49,87,213,.08)}.stat-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:14px;background:#eef3ff;color:var(--app-primary);font-size:1.35rem}.stat-value{font-size:1.55rem;font-weight:850;letter-spacing:-.03em}.stat-label{font-size:.8rem;color:var(--app-muted)}
+  .toolbar{background:#fff;border:1px solid var(--app-border);border-radius:16px;box-shadow:0 8px 24px rgba(24,32,51,.05);padding:.75rem;margin-bottom:1rem}.toolbar .form-control,.toolbar .form-select{min-height:38px}
+  .chart-free{background:#dff7ec}.chart-booked,.chart-confirmed{background:#fff1c9}.chart-occupied,.chart-checked_in{background:#ffe1e1}.chart-cleaning{background:#dff5ff}.chart-maintenance{background:#e9edf5}.chart-cell{min-width:86px;font-size:.72rem;border:1px solid #dce3ee!important;padding:5px 6px!important;vertical-align:middle;cursor:pointer;transition:.15s}.chart-cell:hover{transform:translateY(-1px);filter:brightness(.98)}.chart-header{min-width:86px;text-align:center;font-size:.72rem;background:#f3f6fb!important}.chart-room{font-size:.78rem;white-space:nowrap;background:#fff!important;position:sticky;left:0;z-index:2;box-shadow:6px 0 12px rgba(24,32,51,.04)}
+  .login-bg{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top left,#dbe7ff 0,transparent 36%),linear-gradient(135deg,#111827,#233876 58%,#3157d5)}.login-card{width:min(440px,92vw);border:0;border-radius:26px;box-shadow:0 28px 80px rgba(0,0,0,.28)}.login-logo{width:64px;height:64px;display:grid;place-items:center;border-radius:20px;background:#eef3ff;color:var(--app-primary);font-size:2rem;margin:0 auto .8rem}.modal-content{border-radius:20px;border:0;box-shadow:0 24px 70px rgba(24,32,51,.22)}
+  @media (max-width: 768px){.container-fluid.app-content{padding:1rem}.navbar .nav-link{border-radius:12px}.page-title{align-items:flex-start;flex-direction:column}.toolbar .row>*{width:100%}}
+</style>
+{% block head %}{% endblock %}
+</head>
+<body class="{% if not current_user.is_authenticated %}login-bg{% endif %}">
+<div class="app-shell">
+{% if current_user.is_authenticated %}
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top mb-3">
+  <div class="container-fluid px-4">
+    <a class="navbar-brand" href="{{ url_for('rooms.chart') }}"><i class="bi bi-buildings me-1"></i> АИС Гостиница</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="nav">
+      {% set ep = request.endpoint or '' %}
+      <ul class="navbar-nav me-auto gap-lg-1">
+        <li class="nav-item"><a class="nav-link {{ 'active' if ep.startswith('rooms.') }}" href="{{ url_for('rooms.chart') }}"><i class="bi bi-grid-3x3-gap"></i> Шахматка</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if ep.startswith('checkins.') }}" href="{{ url_for('checkins.index') }}"><i class="bi bi-door-open"></i> Заезд/Выезд</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if ep.startswith('bookings.') }}" href="{{ url_for('bookings.index') }}"><i class="bi bi-calendar3"></i> Брони</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if ep.startswith('guests.') }}" href="{{ url_for('guests.index') }}"><i class="bi bi-people"></i> Гости</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if ep == 'services.index' }}" href="{{ url_for('services.index') }}"><i class="bi bi-bag-check"></i> Услуги</a></li>
+        {% if current_user.role in ('admin','manager') %}
+        <li class="nav-item"><a class="nav-link {{ 'active' if ep.startswith('payments.') }}" href="{{ url_for('payments.index') }}"><i class="bi bi-cash-coin"></i> Платежи</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if ep.startswith('reports.') }}" href="{{ url_for('reports.dashboard') }}"><i class="bi bi-bar-chart-line"></i> Отчёты</a></li>
+        {% endif %}
+        {% if current_user.role == 'admin' %}
+        <li class="nav-item"><a class="nav-link {{ 'active' if ep.startswith('admin.') or ep == 'services.manage' }}" href="{{ url_for('admin.index') }}"><i class="bi bi-sliders"></i> Администрирование</a></li>
+        {% endif %}
+      </ul>
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-person-circle"></i> {{ current_user.full_name }} <span class="badge bg-light text-dark ms-1">{{ current_user.role }}</span></a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}"><i class="bi bi-key me-2"></i>Сменить пароль</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Выйти</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+<div class="container-fluid app-content {% if not current_user.is_authenticated %}p-0{% endif %}">
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+  {% if msgs %}
+  {% if not current_user.is_authenticated %}
+  <div class="mb-3 position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index:1080;width:min(440px,92vw)">
+  {% else %}
+  <div class="mb-3">
+  {% endif %}
+    {% for cat,msg in msgs %}
+    <div class="alert alert-{{ cat }} alert-dismissible fade show mb-2 shadow-sm" role="alert">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

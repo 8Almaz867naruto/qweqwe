@@ -14,7 +14,15 @@
   }
   body{background:linear-gradient(180deg,#eef3ff 0,#f7f8fb 320px,#f3f6fb 100%);color:var(--app-ink);font-size:.95rem;}
   a{color:var(--app-primary)}
-  .app-shell{min-height:100vh;}
+  .app-shell{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  body.login-bg .app-shell{
+    justify-content:center;
+    align-items:center;
+  }
   .navbar{background:rgba(16,24,40,.94)!important;backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(15,23,42,.16);}
   .navbar-brand{font-weight:800;letter-spacing:.02em}.navbar .nav-link{border-radius:999px;padding:.55rem .78rem!important;margin:.08rem;color:rgba(255,255,255,.78)!important}.navbar .nav-link:hover,.navbar .nav-link.active{background:rgba(255,255,255,.12);color:#fff!important}.navbar .badge{font-weight:600;}
   .container-fluid.app-content{padding:1.25rem 1.5rem 2rem;}
